@@ -1,14 +1,19 @@
 from nltk.tokenize import WhitespaceTokenizer
 from collections import Counter
-import sys
+import random
+
+
+def find_next_word(word, dict_of_freq):
+    return random.choices(list(dict_of_freq[word].keys()), weights=list(dict_of_freq[word].values()))[0]
 
 
 def main():
     tk = WhitespaceTokenizer()
-    print("Enter corpus file:")
+    # print("Enter corpus file:")
     corpus_file = open(input(), 'r', encoding='utf-8')
     list_of_tokens = tk.tokenize(corpus_file.read())
     dict_of_bigrams = {}
+
     for curr_head_idx, head in enumerate(list_of_tokens):
         if curr_head_idx == len(list_of_tokens)-1:  # last element in list isn't a head
             pass
@@ -21,22 +26,14 @@ def main():
         frq_counter = Counter(val)
         dict_of_bigrams[key] = frq_counter
 
-    while True:
-        try:
-            input_head = input()
-            if input_head == 'exit':
-                break
+    for curr_sentence_idx in range(10):
+        curr_word = random.choice(list(dict_of_bigrams.keys()))
+        for curr_word_idx in range(10):
+            if curr_word_idx == 9:
+                print(f'{curr_word}')
             else:
-                if dict_of_bigrams.setdefault(input_head):
-                    print(f"Head: {input_head}")
-                    for key, val in dict_of_bigrams[input_head].items():
-                        print(f"Tail: {key} Count: {val}")
-                else:
-                    print("The requested word is not in the model. Please input another word.")
-        except IndexError:
-            print('Index Error. Please input an integer that is in the range of the corpus.')
-        except ValueError:
-            print('Type Error. Please input an integer.')
+                print(f'{curr_word} ', end='')
+            curr_word = find_next_word(curr_word, dict_of_bigrams)
 
 
 if __name__ == "__main__":
