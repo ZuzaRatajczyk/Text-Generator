@@ -7,16 +7,17 @@ import re
 def find_next_word(word, dict_of_freq):  # function to first five words
     next_word = random.choices(list(dict_of_freq[word].keys()), weights=list(dict_of_freq[word].values()))[0]
     while re.match(".+[^.?!]$", next_word) is None:
-        infinite_check = next_word
+        repetition_check = next_word
         next_word = random.choices(list(dict_of_freq[word].keys()), weights=list(dict_of_freq[word].values()))[0]
-        if next_word == infinite_check:  # check if loop is not infinite - there is no match
+        if next_word == repetition_check:  # check if generated word is the same - if true try to generate new sentence
             return
     return next_word
 
 
 def generate_first_word(dict_of_freq):
     word = random.choice(list(dict_of_freq.keys()))
-    while re.match("[A-Z].+[^.?!] .+[^.?!]$", word) is None:
+    while re.match("[A-Z].+[^.?!] .+[^.?!]$", word) is None:  # start with capitalized words and
+        # not start with a word that ends with a sentence-ending punctuation mark
         word = random.choice(list(dict_of_freq.keys()))
     return word
 
@@ -26,6 +27,7 @@ def generate_sentence(dict_of_freq):
     sentence = []
     curr_word = generate_first_word(dict_of_freq)
     sentence.append(curr_word.split()[0])
+
     for curr_word_idx in range(4):  # sentence must has min. 5 words
         previous_word = curr_word.split()[1]
         next_word = find_next_word(curr_word, dict_of_freq)
@@ -35,7 +37,8 @@ def generate_sentence(dict_of_freq):
         else:
             generation_successful = False
             return generation_successful  # can't generate sentence with min. 5 words and try again
-    while True:
+
+    while True:  # while word don't end with '.' or '?' or '!'
         if re.match(".+[.?!]$", curr_word):
             sentence.append(curr_word.split()[1])
             break
@@ -68,7 +71,7 @@ def main():
         dict_of_bigrams[key] = frq_counter
 
     i = 0
-    while i < 10:
+    while i < 10:  # generate ten sentences
         if generate_sentence(dict_of_bigrams):
             i += 1
 
