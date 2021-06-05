@@ -1,37 +1,51 @@
 from nltk.tokenize import WhitespaceTokenizer
 from collections import Counter
 import random
+import re
 
-PUNCTUATION_MARKS = '.?!'
 
-
-def find_next_word(word, dict_of_freq):
-    return random.choices(list(dict_of_freq[word].keys()), weights=list(dict_of_freq[word].values()))[0]
+def find_next_word(word, dict_of_freq):  # function to first five words
+    next_word = random.choices(list(dict_of_freq[word].keys()), weights=list(dict_of_freq[word].values()))[0]
+    while re.match(".+[^.?!]$", next_word) is None:
+        infinite_check = next_word
+        next_word = random.choices(list(dict_of_freq[word].keys()), weights=list(dict_of_freq[word].values()))[0]
+        if next_word == infinite_check:  # check if loop is not infinite - there is no match
+            return
+    return next_word
 
 
 def generate_first_word(dict_of_freq):
-    while True:
+    word = random.choice(list(dict_of_freq.keys()))
+    while re.match("[A-Z].+[^.?!] .+[^.?!]$", word) is None:
         word = random.choice(list(dict_of_freq.keys()))
-        if word[0].isupper() and word[-1] not in PUNCTUATION_MARKS:
-            return word
+    return word
 
 
 def generate_sentence(dict_of_freq):
+    generation_successful = True
+    sentence = []
     curr_word = generate_first_word(dict_of_freq)
-    for curr_word_idx in range(5):
-        if curr_word[-1] in PUNCTUATION_MARKS:
-            print(curr_word[:-1], end=' ')
+    sentence.append(curr_word.split()[0])
+    for curr_word_idx in range(4):  # sentence must has min. 5 words
+        previous_word = curr_word.split()[1]
+        next_word = find_next_word(curr_word, dict_of_freq)
+        if next_word:
+            curr_word = previous_word + ' ' + next_word
+            sentence.append(curr_word.split()[0])
         else:
-            print(curr_word, end=' ')
-        curr_word = find_next_word(curr_word, dict_of_freq)
-
+            generation_successful = False
+            return generation_successful  # can't generate sentence with min. 5 words and try again
     while True:
-        curr_word = find_next_word(curr_word, dict_of_freq)
-        if curr_word[-1] in PUNCTUATION_MARKS:
-            print(curr_word, end='\n')
+        if re.match(".+[.?!]$", curr_word):
+            sentence.append(curr_word.split()[1])
             break
         else:
-            print(curr_word, end=' ')
+            previous_word = curr_word.split()[1]
+            curr_word = previous_word + ' ' + random.choices(list(dict_of_freq[curr_word].keys()),
+                                                             weights=list(dict_of_freq[curr_word].values()))[0]
+            sentence.append(curr_word.split()[0])
+    print(" ".join(sentence))
+    return generation_successful
 
 
 def main():
@@ -41,19 +55,23 @@ def main():
     dict_of_bigrams = {}
 
     for curr_head_idx, head in enumerate(list_of_tokens):
-        if curr_head_idx == len(list_of_tokens)-1:  # last element in list isn't a head
-            pass
-        elif dict_of_bigrams.setdefault(head):  # check if key(token) already exists in dict
-            dict_of_bigrams[head].append(list_of_tokens[curr_head_idx+1])
+        curr_head = head + ' ' + list_of_tokens[curr_head_idx+1]
+        if curr_head_idx == len(list_of_tokens)-3:  # last element in list isn't a head
+            break
+        elif dict_of_bigrams.setdefault(curr_head):  # check if key(token) already exists in dict
+            dict_of_bigrams[curr_head].append(list_of_tokens[curr_head_idx+2])
         else:  # add new kew to dict
-            dict_of_bigrams[head] = [list_of_tokens[curr_head_idx+1]]
+            dict_of_bigrams[curr_head] = [list_of_tokens[curr_head_idx+2]]
 
     for key, val in dict_of_bigrams.items():
         frq_counter = Counter(val)
         dict_of_bigrams[key] = frq_counter
 
-    for curr_sentence_idx in range(10):
-        generate_sentence(dict_of_bigrams)
+    i = 0
+    while i < 10:
+        if generate_sentence(dict_of_bigrams):
+            i += 1
+
 
 
 if __name__ == "__main__":
