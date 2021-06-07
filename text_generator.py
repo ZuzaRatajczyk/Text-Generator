@@ -78,7 +78,7 @@ def generate_sentence(dict_of_freq):
 
 
 def main():
-    corpus_file = open(input(), 'r', encoding='utf-8')
+    corpus_file = open("corpus.txt", 'r', encoding='utf-8')
     dict_of_trigrams = create_dict_of_trigrams(corpus_file)
     i = 0
     while i < 10:  # generate ten sentences
