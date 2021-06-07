@@ -11,5 +11,11 @@ In this function I've also used ```collections.Counter()``` so result dictonary 
 # Generating 10 sentences
 Sentences are generated starting from randomly selected head. After that next word are generated randomly taking into account their weight (frequency of occurrence). 
 
+The sentences that are being generated are:
+ * not shorter than 5 tokens (words)
+ * always start with capitalized words ("This is beautiful.", "You are a great programmer!", etc.);
+ * not start with a word that ends with a sentence-ending punctuation mark ("Okay.", "Nice.", "Good.", "Look!", "Jon!", etc.);
+ * always end with a sentence-ending punctuation mark like ., !, or ?;
+
 
 
