@@ -4,21 +4,46 @@ import random
 import re
 
 
+def create_dict_of_trigrams(file):
+    tk = WhitespaceTokenizer()
+    list_of_tokens = tk.tokenize(file.read())
+    dict_of_trigrams = {}
+
+    for curr_head_idx, head in enumerate(list_of_tokens):
+        curr_head = head + ' ' + list_of_tokens[curr_head_idx+1]
+        if curr_head_idx == len(list_of_tokens)-3:  # last two elements in list isn't a head
+            break
+        elif dict_of_trigrams.setdefault(curr_head):  # check if key(token) already exists in dict
+            dict_of_trigrams[curr_head].append(list_of_tokens[curr_head_idx+2])
+        else:  # add new kew to dict
+            dict_of_trigrams[curr_head] = [list_of_tokens[curr_head_idx+2]]
+
+    for key, val in dict_of_trigrams.items():
+        frq_counter = Counter(val)
+        dict_of_trigrams[key] = frq_counter
+
+    return dict_of_trigrams
+
+
 def find_next_word(word, dict_of_freq):  # function to first five words
     next_word = random.choices(list(dict_of_freq[word].keys()), weights=list(dict_of_freq[word].values()))[0]
+
     while re.match(".+[^.?!]$", next_word) is None:
         repetition_check = next_word
         next_word = random.choices(list(dict_of_freq[word].keys()), weights=list(dict_of_freq[word].values()))[0]
         if next_word == repetition_check:  # check if generated word is the same - if true try to generate new sentence
             return
+
     return next_word
 
 
 def generate_first_word(dict_of_freq):
     word = random.choice(list(dict_of_freq.keys()))
+
     while re.match("[A-Z].+[^.?!] .+[^.?!]$", word) is None:  # start with capitalized words and
         # not start with a word that ends with a sentence-ending punctuation mark
         word = random.choice(list(dict_of_freq.keys()))
+
     return word
 
 
@@ -47,34 +72,18 @@ def generate_sentence(dict_of_freq):
             curr_word = previous_word + ' ' + random.choices(list(dict_of_freq[curr_word].keys()),
                                                              weights=list(dict_of_freq[curr_word].values()))[0]
             sentence.append(curr_word.split()[0])
+
     print(" ".join(sentence))
     return generation_successful
 
 
 def main():
-    tk = WhitespaceTokenizer()
     corpus_file = open(input(), 'r', encoding='utf-8')
-    list_of_tokens = tk.tokenize(corpus_file.read())
-    dict_of_bigrams = {}
-
-    for curr_head_idx, head in enumerate(list_of_tokens):
-        curr_head = head + ' ' + list_of_tokens[curr_head_idx+1]
-        if curr_head_idx == len(list_of_tokens)-3:  # last element in list isn't a head
-            break
-        elif dict_of_bigrams.setdefault(curr_head):  # check if key(token) already exists in dict
-            dict_of_bigrams[curr_head].append(list_of_tokens[curr_head_idx+2])
-        else:  # add new kew to dict
-            dict_of_bigrams[curr_head] = [list_of_tokens[curr_head_idx+2]]
-
-    for key, val in dict_of_bigrams.items():
-        frq_counter = Counter(val)
-        dict_of_bigrams[key] = frq_counter
-
+    dict_of_trigrams = create_dict_of_trigrams(corpus_file)
     i = 0
     while i < 10:  # generate ten sentences
-        if generate_sentence(dict_of_bigrams):
+        if generate_sentence(dict_of_trigrams):
             i += 1
-
 
 
 if __name__ == "__main__":
